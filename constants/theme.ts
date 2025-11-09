@@ -1,29 +1,98 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Enhanced theme with glassmorphism, modern colors, and transparent card styles
  */
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = '#6366F1';
+const tintColorDark = '#A5F3FC';
+const accentColorLight = '#EC4899';
+const accentColorDark = '#F472B6';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: '#1F2937',
+    textSecondary: '#6B7280',
+    background: '#F9FAFB',
+    surface: '#FFFFFF',
+    surfaceHover: '#F3F4F6',
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    accent: accentColorLight,
+    icon: '#6B7280',
+    tabIconDefault: '#9CA3AF',
     tabIconSelected: tintColorLight,
+    error: '#DC2626',
+    success: '#10B981',
+    warning: '#F59E0B',
+    glass: 'rgba(255, 255, 255, 0.7)',
+    glassLight: 'rgba(255, 255, 255, 0.5)',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#F3F4F6',
+    textSecondary: '#D1D5DB',
+    background: '#111827',
+    surface: '#1F2937',
+    surfaceHover: '#374151',
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    accent: accentColorDark,
+    icon: '#D1D5DB',
+    tabIconDefault: '#9CA3AF',
     tabIconSelected: tintColorDark,
+    error: '#EF4444',
+    success: '#34D399',
+    warning: '#FBBF24',
+    glass: 'rgba(31, 41, 55, 0.7)',
+    glassLight: 'rgba(31, 41, 55, 0.5)',
+  },
+};
+
+export const Spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  xxl: 32,
+  xxxl: 40,
+};
+
+export const BorderRadius = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  full: 9999,
+};
+
+export const Shadows = {
+  small: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  medium: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  large: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  glass: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
 };
 
