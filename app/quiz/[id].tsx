@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/ui/glass-card';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useQuizById } from '@/hooks/use-quizzes';
 import { useAuthStore } from '@/store/auth-store';
-import { calculateScore, getQuizById } from '@/utils/quiz-utils';
+import { calculateScore } from '@/utils/quiz-utils-convex';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     Dimensions,
     ScrollView,
@@ -34,9 +36,24 @@ export default function QuizScreen() {
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState<{ score: number; percentage: number } | null>(null);
 
-  const quiz = getQuizById(id as string);
+  const quiz = useQuizById(id as string);
 
-  if (!quiz) {
+  if (quiz === undefined) {
+    return (
+      <SafeAreaView style={{ flex: 1 }}>
+        <ThemedView style={styles.container}>
+          <View style={styles.errorContainer}>
+            <ActivityIndicator size="large" color={themeColors.tint} />
+            <ThemedText style={[styles.errorText, { color: themeColors.textSecondary }]}>
+              Loading quiz...
+            </ThemedText>
+          </View>
+        </ThemedView>
+      </SafeAreaView>
+    );
+  }
+
+  if (quiz === null || !quiz) {
     return (
       <SafeAreaView style={{ flex: 1 }}>
         <ThemedView style={styles.container}>

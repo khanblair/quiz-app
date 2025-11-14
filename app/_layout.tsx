@@ -8,8 +8,14 @@ import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAuthStore } from '@/store/auth-store';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
+import { ConvexProvider, ConvexReactClient } from 'convex/react';
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
+const CONVEX_URL = process.env.EXPO_PUBLIC_CONVEX_URL || '';
+
+const convex = new ConvexReactClient(CONVEX_URL, {
+  unsavedChangesWarning: false,
+});
 
 // Cache for Clerk tokens using SecureStore
 const tokenCache = {
@@ -106,7 +112,9 @@ function AppStack() {
 export default function RootLayout() {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
-      <AppStack />
+      <ConvexProvider client={convex}>
+        <AppStack />
+      </ConvexProvider>
     </ClerkProvider>
   );
 }

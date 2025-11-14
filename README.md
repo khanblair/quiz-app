@@ -295,3 +295,10 @@ This project is open source and available under the MIT License.
 ---
 
 **Happy Learning! 🚀**
+
+-LOCATION
+-SPLASH
+-PUSH NOTIFICATIONS
+-profile image
+-web overflow
+-sound on opening message

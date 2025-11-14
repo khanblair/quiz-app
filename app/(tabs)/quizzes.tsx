@@ -3,11 +3,13 @@ import { ThemedView } from '@/components/themed-view';
 import { GlassCard } from '@/components/ui/glass-card';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
-import { formatDuration, getAllQuizzes, getCategories, getDifficultyColor } from '@/utils/quiz-utils';
+import { useAllCategories, useAllQuizzes } from '@/hooks/use-quizzes';
+import { formatDuration, getDifficultyColor } from '@/utils/quiz-utils-convex';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import {
+    ActivityIndicator,
     Dimensions,
     ScrollView,
     StyleSheet,
@@ -26,10 +28,11 @@ export default function QuizzesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const quizzes = getAllQuizzes();
-  const categories = getCategories();
+  const quizzes = useAllQuizzes();
+  const categories = useAllCategories();
 
   const filteredQuizzes = useMemo(() => {
+    if (!quizzes) return [];
     return quizzes.filter((quiz) => {
       const matchesSearch = quiz.title
         .toLowerCase()
@@ -37,7 +40,9 @@ export default function QuizzesScreen() {
       const matchesCategory = !selectedCategory || quiz.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [quizzes, searchQuery, selectedCategory]);
+
+  const isLoading = !quizzes || !categories;
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
@@ -54,6 +59,16 @@ export default function QuizzesScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
+          {/* Loading State */}
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={themeColors.tint} />
+              <ThemedText style={[styles.loadingText, { color: themeColors.textSecondary }]}>
+                Loading quizzes...
+              </ThemedText>
+            </View>
+          ) : (
+            <>
           {/* Search Bar */}
           <GlassCard style={styles.searchCard} intensity="light" bordered>
             <View style={[styles.searchBar, { backgroundColor: themeColors.surfaceHover }]}>
@@ -236,6 +251,8 @@ export default function QuizzesScreen() {
               </View>
             )}
           </View>
+            </>
+          )}
         </ScrollView>
       </ThemedView>
     </SafeAreaView>
@@ -358,6 +375,16 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
+    marginTop: Spacing.md,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.xxxl * 2,
+  },
+  loadingText: {
+    fontSize: 14,
     marginTop: Spacing.md,
   },
 });

@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Colors, Spacing } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useAllQuizzes } from '@/hooks/use-quizzes';
 import { QuizProgress, useAuthStore } from '@/store/auth-store';
-import { formatDuration, getAllQuizzes, getDifficultyColor } from '@/utils/quiz-utils';
+import { formatDuration, getDifficultyColor } from '@/utils/quiz-utils-convex';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -26,7 +28,7 @@ export default function HomeScreen() {
   const themeColors = Colors[theme];
   const { user, quizProgress } = useAuthStore();
 
-  const allQuizzes = getAllQuizzes();
+  const allQuizzes = useAllQuizzes();
 
   // Calculate dashboard stats
   const stats = useMemo(() => {
@@ -39,6 +41,7 @@ export default function HomeScreen() {
 
   // Get recommended quizzes (not completed or completed with low score)
   const recommendedQuizzes = useMemo(() => {
+    if (!allQuizzes) return [];
     return allQuizzes
       .filter((quiz) => {
         const progress = quizProgress.find((p: QuizProgress) => p.quizId === quiz.id);
@@ -47,6 +50,9 @@ export default function HomeScreen() {
       .slice(0, 2);
   }, [allQuizzes, quizProgress]);
 
+  const isLoading = !allQuizzes;
+  const quizCount = allQuizzes?.length || 0;
+
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
       <ThemedView style={styles.container}>
@@ -54,6 +60,15 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
+          {isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={themeColors.tint} />
+              <ThemedText style={[styles.loadingText, { color: themeColors.textSecondary }]}>
+                Loading...
+              </ThemedText>
+            </View>
+          ) : (
+            <>
           {/* Welcome Section */}
           <View style={styles.welcomeSection}>
             <ThemedText style={styles.greeting}>
@@ -138,7 +153,7 @@ export default function HomeScreen() {
                   />
                 </View>
                 <ThemedText style={styles.statNumber}>
-                  {allQuizzes.length}
+                  {quizCount}
                 </ThemedText>
                 <ThemedText
                   style={[
@@ -263,6 +278,8 @@ export default function HomeScreen() {
               ))}
             </View>
           </View>
+            </>
+          )}
         </ScrollView>
       </ThemedView>
     </SafeAreaView>
@@ -381,5 +398,15 @@ const styles = StyleSheet.create({
   featureDescription: {
     fontSize: 12,
     textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.xxxl * 2,
+  },
+  loadingText: {
+    fontSize: 14,
+    marginTop: Spacing.md,
   },
 });
