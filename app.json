@@ -21,7 +21,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.quizapp.expo"
+      "package": "com.quizapp.expo",
+      "googleServicesFile": "google-services.json"
     },
     "web": {
       "output": "static",
@@ -29,7 +30,7 @@
       "bundler": "metro"
     },
     "notification": {
-      "icon": "./assets/images/notification-icon.png",
+      "icon": "./assets/images/icon.png",
       "color": "#1A8917",
       "androidMode": "default",
       "androidCollapsedTitle": "New notification from QuizApp"
