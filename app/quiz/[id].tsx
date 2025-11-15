@@ -11,13 +11,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -25,7 +25,8 @@ const { width, height } = Dimensions.get('window');
 
 export default function QuizScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  const id = params?.id as string | undefined;
   const theme = useAppTheme();
   const themeColors = Colors[theme];
   const { addQuizProgress } = useAuthStore();
@@ -36,7 +37,7 @@ export default function QuizScreen() {
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState<{ score: number; percentage: number } | null>(null);
 
-  const quiz = useQuizById(id as string);
+  const quiz = useQuizById(id);
 
   if (quiz === undefined) {
     return (
@@ -73,6 +74,25 @@ export default function QuizScreen() {
     );
   }
 
+  if (!quiz.questions || quiz.questions.length === 0) {
+    return (
+      <SafeAreaView style={{ flex: 1 }}>
+        <ThemedView style={styles.container}>
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle" size={48} color={themeColors.error} />
+            <ThemedText style={styles.errorText}>This quiz has no questions.</ThemedText>
+            <Button
+              onPress={() => router.back()}
+              variant="primary"
+              style={styles.errorButton}
+            >
+              Go Back
+            </Button>
+          </View>
+        </ThemedView>
+      </SafeAreaView>
+    );
+  }
   const currentQuestion = quiz.questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
   const answered = answers[currentQuestion.id] !== undefined;

@@ -9,6 +9,22 @@ export default function AuthLayout() {
     >
       <Stack.Screen name="login" />
       <Stack.Screen name="signup" />
+      <Stack.Screen
+        name="callback"
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name="oauth-callback"
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          gestureEnabled: false,
+        }}
+      />
     </Stack>
   );
 }

@@ -5,6 +5,8 @@ node_modules/
 
 # Expo
 .expo/
+.venv/
+.factory/
 dist/
 web-build/
 expo-env.d.ts
@@ -41,4 +43,3 @@ app-example
 # generated native folders
 /ios
 /android
-quiz-app-12859-firebase-adminsdk-fbsvc-90598c8363.json
