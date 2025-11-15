@@ -4,7 +4,7 @@
     "slug": "quiz-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo.jpg",
     "scheme": "quizapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -30,7 +30,7 @@
       "bundler": "metro"
     },
     "notification": {
-      "icon": "./assets/images/icon.png",
+      "icon": "./assets/images/logo.jpg",
       "color": "#1A8917",
       "androidMode": "default",
       "androidCollapsedTitle": "New notification from QuizApp"
@@ -52,7 +52,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/icon.png",
+          "icon": "./assets/images/logo.jpg",
           "color": "#1A8917",
           "sounds": [],
           "mode": "production"
