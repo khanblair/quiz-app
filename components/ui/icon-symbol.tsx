@@ -21,6 +21,7 @@ const MAPPING = {
   // Added mappings for tabs
   'list.bullet.clipboard.fill': 'assignment',
   'gearshape.fill': 'settings',
+  'bell.fill': 'notifications',
   'person.fill': 'person',
 } as IconMapping;
 

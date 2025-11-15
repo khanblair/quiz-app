@@ -10,6 +10,8 @@ import { useAuth, useOAuth, useSignIn } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import {
     Alert,
     Dimensions,
@@ -30,6 +32,7 @@ export default function LoginScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { isSignedIn: clerkSignedIn, isLoaded: clerkLoaded } = useAuth();
   const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
+  const upsertUser = useMutation(api.users.upsertUser);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -65,6 +68,19 @@ export default function LoginScreen() {
       const result = await signIn.create({ identifier: email, password });
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
+        
+        // Sync user to Convex
+        try {
+          await upsertUser({
+            clerkId: result.createdUserId!,
+            email: email,
+            name: result.userData?.firstName || email.split('@')[0],
+            imageUrl: result.userData?.imageUrl,
+          });
+        } catch (convexError) {
+          console.warn('Failed to sync user to Convex:', convexError);
+        }
+        
         router.replace('/(tabs)');
       } else {
         setErrors({ email: 'Additional verification required. Please check your email.' });
@@ -95,6 +111,23 @@ export default function LoginScreen() {
       const { createdSessionId, setActive: setActiveOAuth, signIn: si, signUp: su } = await startOAuthFlow();
       if (createdSessionId) {
         await setActiveOAuth?.({ session: createdSessionId });
+        
+        // Sync user to Convex (will be handled automatically by ConvexProviderWithClerk)
+        // But we can trigger it explicitly to ensure it happens
+        try {
+          const userData = si?.userData || su?.userData;
+          if (userData) {
+            await upsertUser({
+              clerkId: userData.id,
+              email: userData.emailAddresses?.[0]?.emailAddress || '',
+              name: userData.firstName || userData.username || 'User',
+              imageUrl: userData.imageUrl,
+            });
+          }
+        } catch (convexError) {
+          console.warn('Failed to sync user to Convex:', convexError);
+        }
+        
         router.replace('/(tabs)');
         return;
       }

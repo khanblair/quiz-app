@@ -6,9 +6,11 @@ import 'react-native-reanimated';
 
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAuthStore } from '@/store/auth-store';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import * as SecureStore from 'expo-secure-store';
-import { ConvexProvider, ConvexReactClient } from 'convex/react';
+import { ConvexProviderWithClerk } from 'convex/react-clerk';
+import { ConvexReactClient } from 'convex/react';
 
 const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
 const CONVEX_URL = process.env.EXPO_PUBLIC_CONVEX_URL || '';
@@ -32,12 +34,28 @@ function AppStack() {
   const { isLoading, isAuthenticated, loadFromStorage } = useAuthStore();
   const [authReady, setAuthReady] = useState(false);
   const { isSignedIn } = useAuth();
+  
+  // Initialize push notifications (registers for notifications and stores token)
+  const { expoPushToken, notification } = usePushNotifications();
 
   useEffect(() => {
     loadFromStorage().then(() => {
       setAuthReady(true);
     });
   }, []);
+
+  // Log push notification events for debugging
+  useEffect(() => {
+    if (expoPushToken) {
+      console.log('Push token registered:', expoPushToken.data);
+    }
+  }, [expoPushToken]);
+
+  useEffect(() => {
+    if (notification) {
+      console.log('Notification received:', notification);
+    }
+  }, [notification]);
 
   if (!authReady) {
     return (
@@ -112,9 +130,9 @@ function AppStack() {
 export default function RootLayout() {
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} tokenCache={tokenCache}>
-      <ConvexProvider client={convex}>
+      <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <AppStack />
-      </ConvexProvider>
+      </ConvexProviderWithClerk>
     </ClerkProvider>
   );
 }

@@ -3,19 +3,21 @@ import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Colors, Spacing } from '@/constants/theme';
+import { api } from '@/convex/_generated/api';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { QuizProgress, useAuthStore } from '@/store/auth-store';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
+import { useMutation } from 'convex/react';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Alert,
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -28,7 +30,9 @@ export default function ProfileScreen() {
   const { user: legacyUser, logout, quizProgress } = useAuthStore();
   const { user: clerkUser } = useUser();
   const { signOut } = useAuth();
+  const deleteAccount = useMutation(api.users.deleteUserAccount);
   const [signingOut, setSigningOut] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -62,6 +66,60 @@ export default function ProfileScreen() {
         style: 'destructive',
       },
     ]);
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data, including quiz progress and notifications.',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => {},
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          onPress: async () => {
+            setDeletingAccount(true);
+            try {
+              // Delete from Convex first
+              await deleteAccount();
+              
+              // Delete from Clerk
+              try {
+                await clerkUser?.delete();
+              } catch (clerkError) {
+                console.warn('Clerk account deletion failed:', clerkError);
+              }
+
+              // Clear local storage
+              await logout();
+
+              Alert.alert(
+                'Account Deleted',
+                'Your account has been successfully deleted.',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => router.replace('/(auth)/login'),
+                  },
+                ]
+              );
+            } catch (error: any) {
+              console.error('Account deletion error:', error);
+              Alert.alert(
+                'Deletion Failed',
+                error?.message || 'Failed to delete account. Please try again.'
+              );
+            } finally {
+              setDeletingAccount(false);
+            }
+          },
+          style: 'destructive',
+        },
+      ]
+    );
   };
 
   // Calculate statistics
@@ -259,6 +317,7 @@ export default function ProfileScreen() {
             variant="outline"
             size="large"
             style={styles.logoutButton}
+            disabled={signingOut || deletingAccount}
           >
             <Ionicons
               name="log-out-outline"
@@ -274,7 +333,33 @@ export default function ProfileScreen() {
                 },
               ]}
             >
-              Sign Out
+              {signingOut ? 'Signing Out...' : 'Sign Out'}
+            </ThemedText>
+          </Button>
+
+          {/* Delete Account Button */}
+          <Button
+            onPress={handleDeleteAccount}
+            variant="outline"
+            size="large"
+            style={[styles.deleteButton, { borderColor: Colors[theme].error }]}
+            disabled={signingOut || deletingAccount}
+          >
+            <Ionicons
+              name="trash-outline"
+              size={20}
+              color={Colors[theme].error}
+            />
+            <ThemedText
+              style={[
+                {
+                  marginLeft: Spacing.md,
+                  color: Colors[theme].error,
+                  fontWeight: '600',
+                },
+              ]}
+            >
+              {deletingAccount ? 'Deleting...' : 'Delete Account'}
             </ThemedText>
           </Button>
         </ScrollView>
@@ -412,5 +497,8 @@ const styles = StyleSheet.create({
   logoutButton: {
     marginTop: Spacing.lg,
     borderColor: Colors.light.error,
+  },
+  deleteButton: {
+    marginTop: Spacing.md,
   },
 });

@@ -10,6 +10,8 @@ import { useOAuth, useSignUp } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
+import { useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 import {
     Alert,
     Keyboard,
@@ -26,6 +28,7 @@ export default function SignupScreen() {
   const { setUser } = useAuthStore();
   const { signUp, setActive, isLoaded } = useSignUp();
   const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
+  const upsertUser = useMutation(api.users.upsertUser);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -100,6 +103,19 @@ export default function SignupScreen() {
       const attempt = await signUp.attemptEmailAddressVerification({ code: verificationCode.trim() });
       if (attempt.status === 'complete') {
         await setActive?.({ session: attempt.createdSessionId });
+        
+        // Sync user to Convex
+        try {
+          await upsertUser({
+            clerkId: attempt.createdUserId!,
+            email: email,
+            name: name,
+            imageUrl: undefined,
+          });
+        } catch (convexError) {
+          console.warn('Failed to sync user to Convex:', convexError);
+        }
+        
         router.replace('/(tabs)');
       } else {
         setErrors({ email: 'Invalid code. Please try again.' });
@@ -119,6 +135,22 @@ export default function SignupScreen() {
       const { createdSessionId, setActive: setActiveOAuth, signIn: si, signUp: su } = await startOAuthFlow();
       if (createdSessionId) {
         await setActiveOAuth?.({ session: createdSessionId });
+        
+        // Sync user to Convex
+        try {
+          const userData = si?.userData || su?.userData;
+          if (userData) {
+            await upsertUser({
+              clerkId: userData.id,
+              email: userData.emailAddresses?.[0]?.emailAddress || '',
+              name: userData.firstName || userData.username || 'User',
+              imageUrl: userData.imageUrl,
+            });
+          }
+        } catch (convexError) {
+          console.warn('Failed to sync user to Convex:', convexError);
+        }
+        
         router.replace('/(tabs)');
         return;
       }

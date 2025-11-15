@@ -183,3 +183,82 @@ export const bulkCreateQuizzes = mutation({
     return { success: true, count: results.length, ids: results };
   },
 });
+
+// Admin: Bulk create quizzes with automatic category tracking
+export const bulkCreateQuizzesWithCategories = mutation({
+  args: {
+    quizzes: v.array(
+      v.object({
+        id: v.string(),
+        title: v.string(),
+        description: v.string(),
+        category: v.string(),
+        difficulty: v.string(),
+        duration: v.number(),
+        questions: v.array(
+          v.object({
+            id: v.string(),
+            question: v.string(),
+            options: v.array(v.string()),
+            correctAnswer: v.number(),
+            explanation: v.string(),
+          })
+        ),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // Extract unique categories from quizzes
+    const uniqueCategories = Array.from(
+      new Set(args.quizzes.map((quiz) => quiz.category))
+    );
+
+    // Ensure all categories exist in the categories table
+    for (const categoryName of uniqueCategories) {
+      // Check if category already exists
+      const existing = await ctx.db
+        .query("categories")
+        .withIndex("by_name", (q) => q.eq("name", categoryName))
+        .first();
+
+      if (!existing) {
+        // Create slug from category name
+        const slug = categoryName
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^\w-]/g, "");
+
+        await ctx.db.insert("categories", {
+          name: categoryName,
+          slug,
+          description: undefined,
+          icon: undefined,
+          color: undefined,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+
+    // Insert all quizzes
+    const results = [];
+    for (const quiz of args.quizzes) {
+      const _id = await ctx.db.insert("quizzes", {
+        ...quiz,
+        createdAt: now,
+        updatedAt: now,
+      });
+      results.push(_id);
+    }
+
+    return { 
+      success: true, 
+      quizCount: results.length, 
+      categoryCount: uniqueCategories.length,
+      categories: uniqueCategories,
+      ids: results 
+    };
+  },
+});

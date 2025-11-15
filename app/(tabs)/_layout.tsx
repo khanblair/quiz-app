@@ -1,14 +1,20 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { NotificationBell } from '@/components/ui/notification-bell';
 import { Colors } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { api } from '@/convex/_generated/api';
+import { useQuery } from 'convex/react';
 
 export default function TabLayout() {
   const appTheme = useAppTheme();
   const themeColors = Colors[appTheme];
+  const router = useRouter();
+
+  const unreadCount = useQuery(api.mobile.notifications.getUnreadCount);
 
   return (
     <Tabs
@@ -45,6 +51,12 @@ export default function TabLayout() {
           title: 'Home',
           headerTitle: '🏠 Home',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          headerRight: () => (
+            <NotificationBell
+              count={unreadCount || 0}
+              onPress={() => router.push('/(tabs)/notifications')}
+            />
+          ),
         }}
       />
       <Tabs.Screen
@@ -61,6 +73,14 @@ export default function TabLayout() {
           title: 'Settings',
           headerTitle: '⚙️ Settings',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: 'Notifications',
+          headerTitle: '🔔 Notifications',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="bell.fill" color={color} />,
         }}
       />
       <Tabs.Screen
